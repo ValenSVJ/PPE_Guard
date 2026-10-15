@@ -1,0 +1,10 @@
+{
+    "enabled": true,
+    "smtp_server": "smtp.gmail.com",
+    "smtp_port": 587,
+    "sender_email": "your_email@gmail.com",
+    "sender_password": "your_16_digit_app_password",
+    "receiver_email": "safety_officer@example.com",
+    "cooldown_seconds": 30,
+    "attach_image": true
+}

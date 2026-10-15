@@ -1,0 +1,45 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+
+# Sensitive Configuration & Credentials (DO NOT COMMIT)
+alert_config.json
+
+# Large Datasets (170+ MB)
+datasets/
+
+# Static uploads and results (keep folder structure with .gitkeep)
+static/uploads/*
+!static/uploads/.gitkeep
+static/results/*
+!static/results/.gitkeep
+
+# Heavy intermediate training batch images (preserve metrics charts and model weights)
+runs/detect/train-*/train_batch*.jpg
+runs/detect/train-*/val_batch*.jpg
+runs/detect/predict/*
+!runs/detect/predict/.gitkeep
+
+# IDEs and Editors
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Operating System files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Environment variables
+.env
+
+# Local helper scripts
+push_to_github.bat

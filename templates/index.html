@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PPEGuard - AI Workplace Safety</title>
+    <!-- Modern Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --panel-bg: #131a2a;
+            --accent-color: #3b82f6;
+            --accent-hover: #2563eb;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --safe-color: #10b981;
+            --warn-color: #f59e0b;
+            --crit-color: #ef4444;
+            --border-color: #1e293b;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        header {
+            padding: 20px 40px;
+            background-color: rgba(19, 26, 42, 0.85);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--accent-color), #8b5cf6);
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: 700;
+            font-size: 22px;
+            color: white;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+        .logo-text h1 {
+            margin: 0;
+            font-size: 1.45rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+        .logo-text p {
+            margin: 0;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* Status Dot */
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        /* Buttons & Utilities */
+        .btn-primary {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+        .btn-primary:hover {
+            background-color: var(--accent-hover);
+        }
+        .btn-primary:active {
+            transform: scale(0.98);
+        }
+        .btn-primary:disabled {
+            background-color: #334155;
+            color: var(--text-muted);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-sm {
+            padding: 8px 14px;
+            font-size: 0.85rem;
+            border-radius: 8px;
+            cursor: pointer;
+            border: none;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+        }
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.18);
+        }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+        }
+        .btn-outline:hover {
+            color: white;
+            border-color: var(--text-muted);
+        }
+
+        /* Main Content */
+        main {
+            padding: 40px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* Upload Area */
+        .upload-section {
+            background-color: var(--panel-bg);
+            border: 2px dashed var(--border-color);
+            border-radius: 16px;
+            padding: 50px 40px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+        .upload-section:hover, .upload-section.dragover {
+            border-color: var(--accent-color);
+            background-color: rgba(59, 130, 246, 0.05);
+        }
+        .upload-icon {
+            font-size: 46px;
+            margin-bottom: 15px;
+            display: block;
+        }
+        .upload-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .upload-sub {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+        #file-input {
+            display: none;
+        }
+
+        /* Loading */
+        #loading-indicator {
+            display: none;
+            margin-top: 20px;
+            font-weight: 600;
+            color: var(--accent-color);
+        }
+
+        /* Results Area */
+        #results-section {
+            display: none;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        /* Alert Banner */
+        .alert-banner {
+            display: none;
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.18), rgba(185, 28, 28, 0.28));
+            border: 1px solid rgba(239, 68, 68, 0.45);
+            border-radius: 12px;
+            padding: 16px 20px;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            box-shadow: 0 4px 20px rgba(239, 68, 68, 0.2);
+            animation: pulse-border 2s infinite alternate;
+        }
+        @keyframes pulse-border {
+            0% { border-color: rgba(239, 68, 68, 0.4); }
+            100% { border-color: rgba(239, 68, 68, 0.9); }
+        }
+        .alert-banner.safe {
+            animation: none;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(5, 150, 105, 0.18));
+            border-color: rgba(16, 185, 129, 0.4);
+            box-shadow: 0 4px 16px rgba(16, 185, 129, 0.1);
+        }
+        .alert-banner-content {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .alert-banner-icon {
+            font-size: 32px;
+            line-height: 1;
+        }
+        .alert-banner-title {
+            font-weight: 700;
+            font-size: 1.05rem;
+            margin-bottom: 2px;
+        }
+        .alert-banner-desc {
+            font-size: 0.88rem;
+            color: var(--text-muted);
+        }
+
+        /* Images Preview */
+        .images-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .image-card {
+            background-color: var(--panel-bg);
+            border-radius: 14px;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+        }
+        .image-card h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            color: var(--text-muted);
+        }
+        .img-wrapper {
+            width: 100%;
+            height: 420px;
+            background-color: rgba(0,0,0,0.35);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .img-wrapper img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        /* Stats & Analytics */
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+        .stat-card {
+            background-color: var(--panel-bg);
+            padding: 22px;
+            border-radius: 14px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+        }
+        .stat-title {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .stat-value {
+            font-size: 2.4rem;
+            font-weight: 700;
+            margin-top: 10px;
+        }
+        .stat-value.safe { color: var(--safe-color); }
+        .stat-value.warning { color: var(--warn-color); }
+        .stat-value.critical { color: var(--crit-color); }
+
+        /* Violations & Details */
+        .bottom-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
+        .panel {
+            background-color: var(--panel-bg);
+            border-radius: 14px;
+            padding: 22px;
+            border: 1px solid var(--border-color);
+        }
+        .panel h3 {
+            margin-top: 0;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 15px;
+            font-size: 1.1rem;
+        }
+        .violations-list, .detections-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            max-height: 260px;
+            overflow-y: auto;
+        }
+        .violation-item {
+            background-color: rgba(239, 68, 68, 0.1);
+            border-left: 4px solid var(--crit-color);
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            border-radius: 0 6px 6px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .detection-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .no-violations {
+            color: var(--safe-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px;
+            background: rgba(16, 185, 129, 0.1);
+            border-radius: 8px;
+        }
+
+        /* Error Box */
+        #error-box {
+            display: none;
+            background-color: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            text-align: left;
+            border: 1px solid var(--crit-color);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-card {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            width: 90%;
+            max-width: 520px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+            overflow: hidden;
+            animation: modalFadeIn 0.25s ease-out;
+        }
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .modal-header {
+            padding: 18px 24px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.15rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 24px;
+            cursor: pointer;
+            line-height: 1;
+        }
+        .modal-close:hover {
+            color: white;
+        }
+        .modal-body {
+            padding: 20px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .form-group label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+        .form-control {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px 12px;
+            color: white;
+            font-family: inherit;
+            font-size: 0.9rem;
+        }
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 12px;
+        }
+        .form-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        .form-checkbox input {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--accent-color);
+        }
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0,0,0,0.2);
+        }
+        .help-tip {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            background: rgba(59, 130, 246, 0.08);
+            border-left: 3px solid var(--accent-color);
+            padding: 8px 12px;
+            border-radius: 0 6px 6px 0;
+            line-height: 1.4;
+        }
+        .alert-feedback {
+            font-size: 0.85rem;
+            padding: 10px 14px;
+            border-radius: 8px;
+            display: none;
+        }
+        .alert-feedback.success {
+            display: block;
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--safe-color);
+            border: 1px solid var(--safe-color);
+        }
+        .alert-feedback.error {
+            display: block;
+            background: rgba(239, 68, 68, 0.15);
+            color: #fca5a5;
+            border: 1px solid var(--crit-color);
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo-area">
+        <div class="logo-icon">P</div>
+        <div class="logo-text">
+            <h1>PPEGuard</h1>
+            <p>AI-Powered Workplace Safety & Compliance</p>
+        </div>
+    </div>
+    
+    <div style="display: flex; align-items: center; gap: 12px;">
+        <button id="alert-settings-btn" class="btn-sm btn-secondary" onclick="openAlertModal()" style="display: flex; align-items: center; gap: 8px;">
+            <span id="alert-status-dot" class="status-dot" style="background-color: var(--warn-color); box-shadow: 0 0 8px var(--warn-color);"></span>
+            <span id="alert-status-text">Email Alerts: Setup</span>
+        </button>
+    </div>
+</header>
+
+<main>
+    <div class="upload-section" id="drop-zone" onclick="document.getElementById('file-input').click()">
+        <span class="upload-icon">📷</span>
+        <div class="upload-title">Upload a workplace image</div>
+        <div class="upload-sub">Drag and drop or click to browse (JPG, PNG, WEBP)</div>
+        
+        <input type="file" id="file-input" accept=".jpg,.jpeg,.png,.webp" onchange="handleFileSelect(event)">
+        
+        <div id="selected-file-name" style="margin-bottom: 20px; font-weight: 600; color: var(--accent-color);"></div>
+        
+        <button class="btn-primary" id="analyze-btn" onclick="uploadImage(event)" disabled>Analyze Image</button>
+        
+        <div id="loading-indicator">
+            <span class="spinner">⚙️</span> Analyzing with PPEGuard AI...
+        </div>
+        
+        <div id="error-box"></div>
+    </div>
+
+    <div id="results-section">
+        <div class="alert-banner" id="alert-banner">
+            <div class="alert-banner-content">
+                <span class="alert-banner-icon" id="alert-banner-icon">🚨</span>
+                <div>
+                    <div class="alert-banner-title" id="alert-banner-title">Safety Alert Triggered</div>
+                    <div class="alert-banner-desc" id="alert-banner-desc">Email notification has been sent.</div>
+                </div>
+            </div>
+            <button class="btn-sm btn-secondary" onclick="openAlertModal()">Configure Alerts</button>
+        </div>
+
+        <div class="images-container">
+            <div class="image-card">
+                <h3>Original Image</h3>
+                <div class="img-wrapper">
+                    <img id="original-img" src="" alt="Original">
+                </div>
+            </div>
+            <div class="image-card">
+                <h3>AI Detection Result</h3>
+                <div class="img-wrapper">
+                    <img id="annotated-img" src="" alt="Annotated Result">
+                </div>
+            </div>
+        </div>
+
+        <div class="analytics-grid">
+            <div class="stat-card">
+                <div class="stat-title">PPE Compliance</div>
+                <div class="stat-value" id="score-val">--%</div>
+                <div style="margin-top: 5px; font-size: 0.8rem; color: var(--text-muted);" id="score-status">Status: --</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Persons Detected</div>
+                <div class="stat-value" style="color: white;" id="persons-count">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Helmets Detected</div>
+                <div class="stat-value" style="color: white;" id="helmets-count">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Vests Detected</div>
+                <div class="stat-value" style="color: white;" id="vests-count">0</div>
+            </div>
+        </div>
+
+        <div class="bottom-grid">
+            <div class="panel">
+                <h3>⚠️ PPE Violations</h3>
+                <ul class="violations-list" id="violations-list">
+                    <!-- Violations go here -->
+                </ul>
+            </div>
+            <div class="panel">
+                <h3>All Detections</h3>
+                <ul class="detections-list" id="detections-list">
+                    <!-- Detections go here -->
+                </ul>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+    let selectedFile = null;
+    
+    // Drag and drop handlers
+    const dropZone = document.getElementById('drop-zone');
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('dragover');
+    });
+    dropZone.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+    });
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+        if (e.dataTransfer.files.length > 0) {
+            document.getElementById('file-input').files = e.dataTransfer.files;
+            handleFileSelect({ target: document.getElementById('file-input') });
+        }
+    });
+
+    function handleFileSelect(event) {
+        const file = event.target.files[0];
+        if (file) {
+            selectedFile = file;
+            document.getElementById('selected-file-name').textContent = file.name;
+            document.getElementById('analyze-btn').disabled = false;
+            
+            // Show original image preview immediately
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('original-img').src = e.target.result;
+            }
+            reader.readAsDataURL(file);
+        }
+    }
+
+    async function uploadImage(event) {
+        event.stopPropagation();
+        if (!selectedFile) return;
+
+        const btn = document.getElementById('analyze-btn');
+        const loading = document.getElementById('loading-indicator');
+        const errorBox = document.getElementById('error-box');
+        const resultsSec = document.getElementById('results-section');
+
+        btn.style.display = 'none';
+        loading.style.display = 'block';
+        errorBox.style.display = 'none';
+        resultsSec.style.display = 'none';
+
+        const formData = new FormData();
+        formData.append('image', selectedFile);
+
+        try {
+            const response = await fetch('/predict', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                displayResults(data);
+            } else {
+                errorBox.textContent = `Error: ${data.error}`;
+                errorBox.style.display = 'block';
+            }
+        } catch (error) {
+            errorBox.textContent = `Connection Error: ${error.message}`;
+            errorBox.style.display = 'block';
+        } finally {
+            btn.style.display = 'inline-block';
+            loading.style.display = 'none';
+        }
+    }
+
+    function displayResults(data) {
+        document.getElementById('results-section').style.display = 'flex';
+        
+        // Annotated image (add timestamp to bust cache)
+        document.getElementById('annotated-img').src = data.annotated_image + '?t=' + new Date().getTime();
+
+        // Update counts
+        document.getElementById('persons-count').textContent = data.counts['Person'] || 0;
+        document.getElementById('helmets-count').textContent = data.counts['helmet'] || 0;
+        document.getElementById('vests-count').textContent = data.counts['vest'] || 0;
+
+        // Score & Status
+        const scoreVal = document.getElementById('score-val');
+        scoreVal.textContent = data.compliance_score + '%';
+        scoreVal.className = 'stat-value ' + data.status.toLowerCase();
+        
+        document.getElementById('score-status').textContent = 'Status: ' + data.status;
+
+        // Violations
+        const vList = document.getElementById('violations-list');
+        vList.innerHTML = '';
+        if (data.violations.length === 0) {
+            vList.innerHTML = '<div class="no-violations">✅ No violations detected. Safety protocol observed.</div>';
+        } else {
+            data.violations.forEach(v => {
+                vList.innerHTML += `<li class="violation-item"><span>⚠️</span> ${v}</li>`;
+            });
+        }
+
+        // Alert Banner Update
+        const alertBanner = document.getElementById('alert-banner');
+        const alertIcon = document.getElementById('alert-banner-icon');
+        const alertTitle = document.getElementById('alert-banner-title');
+        const alertDesc = document.getElementById('alert-banner-desc');
+
+        alertBanner.style.display = 'flex';
+        if (data.violations.length > 0) {
+            alertBanner.className = 'alert-banner';
+            alertIcon.textContent = '🚨';
+            alertTitle.textContent = 'SAFETY VIOLATION ALERT';
+            alertDesc.textContent = (data.alert && data.alert.message) ? data.alert.message : 'Missing protective equipment detected!';
+        } else {
+            alertBanner.className = 'alert-banner safe';
+            alertIcon.textContent = '✅';
+            alertTitle.textContent = 'ALL SAFETY GEAR COMPLIANT';
+            alertDesc.textContent = 'Full protective gear observed on all detected personnel. No alerts dispatched.';
+        }
+
+        // Detections List
+        const dList = document.getElementById('detections-list');
+        dList.innerHTML = '';
+        data.detections.sort((a,b) => b.confidence - a.confidence).forEach(d => {
+            dList.innerHTML += `
+                <li class="detection-item">
+                    <span style="text-transform: capitalize; font-weight:600;">${d.class}</span>
+                    <span style="color:var(--text-muted);">${d.confidence}%</span>
+                </li>`;
+        });
+        
+        // Scroll to results
+        document.getElementById('results-section').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // --- Alert Management JS ---
+    async function fetchAlertConfig() {
+        try {
+            const res = await fetch('/api/alerts/config');
+            const data = await res.json();
+            if (data.success && data.config) {
+                const cfg = data.config;
+                document.getElementById('cfg-enabled').checked = cfg.enabled !== false;
+                document.getElementById('cfg-server').value = cfg.smtp_server || 'smtp.gmail.com';
+                document.getElementById('cfg-port').value = cfg.smtp_port || 587;
+                document.getElementById('cfg-sender-email').value = cfg.sender_email || '';
+                document.getElementById('cfg-sender-pwd').value = cfg.sender_password || '';
+                document.getElementById('cfg-receiver-email').value = cfg.receiver_email || '';
+                document.getElementById('cfg-attach-img').checked = cfg.attach_image !== false;
+
+                updateAlertStatusBadge(data.is_configured, cfg.enabled, cfg.receiver_email);
+            }
+        } catch (err) {
+            console.error('Failed to load alert config:', err);
+        }
+    }
+
+    function updateAlertStatusBadge(isConfigured, isEnabled, receiver) {
+        const dot = document.getElementById('alert-status-dot');
+        const text = document.getElementById('alert-status-text');
+        
+        if (!isEnabled) {
+            dot.style.backgroundColor = '#94a3b8';
+            dot.style.boxShadow = 'none';
+            text.textContent = 'Email Alerts: Off';
+        } else if (isConfigured) {
+            dot.style.backgroundColor = 'var(--safe-color)';
+            dot.style.boxShadow = '0 0 8px var(--safe-color)';
+            text.textContent = receiver ? `Alerts Active (${receiver})` : 'Email Alerts: Active';
+        } else {
+            dot.style.backgroundColor = 'var(--warn-color)';
+            dot.style.boxShadow = '0 0 8px var(--warn-color)';
+            text.textContent = 'Email Alerts: Setup Needed';
+        }
+    }
+
+    function openAlertModal() {
+        document.getElementById('alert-modal').style.display = 'flex';
+        document.getElementById('modal-feedback').style.display = 'none';
+    }
+
+    function closeAlertModal() {
+        document.getElementById('alert-modal').style.display = 'none';
+    }
+
+    async function saveAlertConfig() {
+        const btn = document.getElementById('save-alert-btn');
+        const feedback = document.getElementById('modal-feedback');
+        btn.disabled = true;
+        btn.textContent = 'Saving...';
+        feedback.style.display = 'none';
+
+        const payload = {
+            enabled: document.getElementById('cfg-enabled').checked,
+            smtp_server: document.getElementById('cfg-server').value.trim(),
+            smtp_port: parseInt(document.getElementById('cfg-port').value) || 587,
+            sender_email: document.getElementById('cfg-sender-email').value.trim(),
+            sender_password: document.getElementById('cfg-sender-pwd').value.trim(),
+            receiver_email: document.getElementById('cfg-receiver-email').value.trim(),
+            attach_image: document.getElementById('cfg-attach-img').checked
+        };
+
+        try {
+            const res = await fetch('/api/alerts/config', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (data.success) {
+                feedback.className = 'alert-feedback success';
+                feedback.textContent = '✓ Alert configuration saved successfully!';
+                feedback.style.display = 'block';
+                updateAlertStatusBadge(data.is_configured, payload.enabled, payload.receiver_email);
+                setTimeout(() => {
+                    closeAlertModal();
+                }, 1200);
+            } else {
+                feedback.className = 'alert-feedback error';
+                feedback.textContent = 'Error saving configuration.';
+                feedback.style.display = 'block';
+            }
+        } catch (err) {
+            feedback.className = 'alert-feedback error';
+            feedback.textContent = `Error: ${err.message}`;
+            feedback.style.display = 'block';
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Save Settings';
+        }
+    }
+
+    async function sendTestAlert() {
+        const btn = document.getElementById('test-alert-btn');
+        const feedback = document.getElementById('modal-feedback');
+        btn.disabled = true;
+        btn.textContent = 'Sending Test...';
+        feedback.style.display = 'none';
+
+        const payload = {
+            smtp_server: document.getElementById('cfg-server').value.trim(),
+            smtp_port: parseInt(document.getElementById('cfg-port').value) || 587,
+            sender_email: document.getElementById('cfg-sender-email').value.trim(),
+            sender_password: document.getElementById('cfg-sender-pwd').value.trim(),
+            receiver_email: document.getElementById('cfg-receiver-email').value.trim()
+        };
+
+        try {
+            const res = await fetch('/api/alerts/test', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (data.success) {
+                feedback.className = 'alert-feedback success';
+                feedback.textContent = `✓ ${data.message}`;
+                feedback.style.display = 'block';
+                updateAlertStatusBadge(true, true, payload.receiver_email);
+            } else {
+                feedback.className = 'alert-feedback error';
+                feedback.textContent = `⚠️ ${data.message}`;
+                feedback.style.display = 'block';
+            }
+        } catch (err) {
+            feedback.className = 'alert-feedback error';
+            feedback.textContent = `Connection error: ${err.message}`;
+            feedback.style.display = 'block';
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Send Test Email';
+        }
+    }
+
+    // Load alert config on page startup
+    document.addEventListener('DOMContentLoaded', fetchAlertConfig);
+</script>
+
+<!-- Alert Settings Modal -->
+<div class="modal-overlay" id="alert-modal" onclick="if(event.target === this) closeAlertModal()">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3>🔔 Email Alert Settings</h3>
+            <button class="modal-close" onclick="closeAlertModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="help-tip">
+                Whenever a person is detected without protective gear (e.g. Missing Helmet, Missing Safety Vest), PPEGuard automatically dispatches an alert email with safety violation details and the annotated proof image.
+            </div>
+
+            <label class="form-checkbox">
+                <input type="checkbox" id="cfg-enabled" checked>
+                <span style="font-weight:600;">Enable Automated Email Alerts</span>
+            </label>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>SMTP Server</label>
+                    <input type="text" id="cfg-server" class="form-control" placeholder="smtp.gmail.com">
+                </div>
+                <div class="form-group">
+                    <label>Port</label>
+                    <input type="number" id="cfg-port" class="form-control" placeholder="587">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Sender Email (e.g. Gmail)</label>
+                <input type="email" id="cfg-sender-email" class="form-control" placeholder="your-safety-bot@gmail.com">
+            </div>
+
+            <div class="form-group">
+                <label>Sender App Password</label>
+                <input type="password" id="cfg-sender-pwd" class="form-control" placeholder="16-character App Password">
+                <small style="color: var(--text-muted); font-size: 0.75rem;">
+                    For Gmail: Use a Google App Password (Google Account &gt; Security &gt; 2-Step Verification &gt; App Passwords).
+                </small>
+            </div>
+
+            <div class="form-group">
+                <label>Recipient Email (Safety Supervisor / Manager)</label>
+                <input type="email" id="cfg-receiver-email" class="form-control" placeholder="supervisor@company.com">
+            </div>
+
+            <label class="form-checkbox">
+                <input type="checkbox" id="cfg-attach-img" checked>
+                <span>Attach annotated detection image to alert emails</span>
+            </label>
+
+            <div id="modal-feedback" class="alert-feedback"></div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-sm btn-outline" id="test-alert-btn" onclick="sendTestAlert()">Send Test Email</button>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-sm btn-secondary" onclick="closeAlertModal()">Cancel</button>
+                <button class="btn-sm btn-primary" id="save-alert-btn" onclick="saveAlertConfig()">Save Settings</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
